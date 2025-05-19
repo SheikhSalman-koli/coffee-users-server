@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -8,7 +9,6 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-require('dotenv').config();
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.dclhmji.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -23,7 +23,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
-        await client.connect();
+        // await client.connect();
 
         const coffeeCollection = client.db('coffeeDB').collection('coffee');
         const usersCollection = client.db('coffeeDB').collection('users');
@@ -31,7 +31,17 @@ async function run() {
         app.get('/coffees', async (req, res) => {
             // const cursor = coffeeCollection.find();
             // const result = await cursor.toArray();
-            const result = await coffeeCollection.find().toArray();
+      //  for searching
+            const{ searchparams }= req.query
+            // console.log(searchparams);
+
+            let query = {}
+
+            if(searchparams){
+                query = { name: { $regex: searchparams, $options: "i"}}
+            }
+
+            const result = await coffeeCollection.find(query).toArray();
             res.send(result);
         });
 
